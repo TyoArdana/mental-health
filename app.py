@@ -1,30 +1,32 @@
 import streamlit as st
 import joblib
 
-# Load model & vectorizer
-model = joblib.load("model_svm.pkl")
-vectorizer = joblib.load("tfidf_vectorizer.pkl")
+@st.cache_resource
+def load_model():
+    return joblib.load("model_svm.pkl")
 
-st.set_page_config(page_title="Mental Health Classification", layout="centered")
+model = load_model()
+
+st.set_page_config(
+    page_title="Mental Health Polarity Classification",
+    layout="centered"
+)
 
 st.title("Mental Health Polarity Classification")
-st.caption("Model: TF-IDF + Linear SVM")
+st.write("**Model:** TF-IDF + Linear SVM (Pipeline)")
 
-# Input teks
-text = st.text_area("Masukkan teks:", height=150)
+text_input = st.text_area(
+    "Masukkan teks:",
+    placeholder="Contoh: I feel stressed and anxious lately."
+)
 
-# Tombol prediksi
 if st.button("Prediksi"):
-
-    if text.strip() == "":
+    if text_input.strip() == "":
         st.warning("Teks tidak boleh kosong.")
     else:
-        # === WAJIB ADA SEBELUM predict ===
-        X_input = vectorizer.transform([text])
+        pred = model.predict([text_input])[0]
 
-        pred = model.predict(X_input)[0]
-
-        if pred == 0:
-            st.error("Hasil: Mental Health Discourse / Potential Distress")
+        if pred == 1:
+            st.success("Hasil: Positive / Healthy")
         else:
-            st.success("Hasil: Neutral / No Distress Indicators")
+            st.error("Hasil: Negative / Poor")
